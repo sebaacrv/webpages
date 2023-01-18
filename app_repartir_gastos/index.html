@@ -38,25 +38,28 @@ def add_task(*ags, **kws):
     # ignore empty task
   nombre=new_task_content.element.value
   aporte=new_task_content2.element.value
-  if not nombre or not aporte or aporte<0:
+  if not nombre or not aporte:
       return None
   else:
-    try:
-        int(new_task_content.element.value)
-        print("Eso no es un nombre")
-    except ValueError:
-      #Crear persona
-        task_id = f"{len(persona)+1}"
-        task = {
-            "id": task_id,
-            "content": new_task_content.element.value,
-            "done": False,
-            }
+    if float(aporte)>=0:
         try:
-            aporte=float(new_task_content2.element.value)
-            task['valor_aportado']=aporte
+            int(new_task_content.element.value)
+            print("Eso no es un nombre")
         except ValueError:
-            print('Eso no es un número')
+          #Crear persona
+            task_id = f"{len(persona)+1}"
+            task = {
+                "id": task_id,
+                "content": new_task_content.element.value,
+                "done": False,
+                }
+            try:
+                aporte=float(new_task_content2.element.value)
+                task['valor_aportado']=aporte
+            except ValueError:
+                print('Eso no es un número')
+    else:
+        print("El aporte no puede ser negativo")
 
     persona.append(task)
 
@@ -124,7 +127,6 @@ def calculo_final(*ags, **kws):
                     aporte_html_content = aporte_html.select("p")
                     aporte_html_content.element.innerText =f'{persona_actual["content"]} no tiene que poner nada'
                     task_list.element.appendChild(aporte_html.element)
-
 
   </py-script>
 
