@@ -38,7 +38,7 @@ def add_task(*ags, **kws):
     # ignore empty task
   nombre=new_task_content.element.value
   aporte=new_task_content2.element.value
-  if not nombre or not aporte:
+  if not nombre or not aporte or aporte<0:
       return None
   else:
     try:
