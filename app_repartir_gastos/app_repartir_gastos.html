@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <title>División de gastos</title>
+
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+    <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+  </head>
+
+  <body class="container">
+  <py-script>
+def remove_class(element, class_name):
+    element.element.classList.remove(class_name)
+
+
+def add_class(element, class_name):
+    element.element.classList.add(class_name)
+
+
+tasks = []
+
+# define the task template that will be use to render new templates to the page
+task_template = Element("task-template").select(".task", from_content=True)
+task_list = Element("list-tasks-container")
+new_task_content = Element("new-task-content")
+
+task_template2 = Element("task-template2").select(".task", from_content=True)
+task_list2 = Element("list-tasks-container")
+new_task_content2 = Element("new-task-content2")
+
+persona=[]
+
+def add_task(*ags, **kws):
+    # ignore empty task
+  nombre=new_task_content.element.value
+  aporte=new_task_content2.element.value
+  if not nombre or not aporte:
+      return None
+  else:
+    try:
+        int(new_task_content.element.value)
+        print("Eso no es un nombre")
+    except ValueError:
+      #Crear persona
+        task_id = f"{len(persona)+1}"
+        task = {
+            "id": task_id,
+            "content": new_task_content.element.value,
+            "done": False,
+            }
+        try:
+            aporte=float(new_task_content2.element.value)
+            task['valor_aportado']=aporte
+        except ValueError:
+            print('Eso no es un número')
+
+    persona.append(task)
+
+    # add the task element to the page as new node in the list by cloning from a
+    # template
+    task_html = task_template.clone(task_id, to=task_list)
+    task_html_content = task_html.select("p")
+    task_html_content.element.innerText = f'$ {task["valor_aportado"]}'
+    task_html_check = task_html.select("input")
+    task_list.element.appendChild(task_html.element)
+
+    aporte_html = task_template2.clone(task_id, to=task_list)
+    aporte_html_content = aporte_html.select("p")
+    aporte_html_content.element.innerText =f'{task["id"]}) {task["content"]}'
+    task_list.element.appendChild(aporte_html.element)
+
+    new_task_content.clear()
+    new_task_content2.clear()
+
+    def check_task(evt=None):
+        task["done"] = not task["done"]
+        if task["done"]:
+            add_class(task_html_content, "line-through")
+            add_class(aporte_html_content, "line-through")
+        else:
+            remove_class(task_html_content, "line-through")
+            remove_class(aporte_html_content, "line-through")
+    task_html_check.element.onclick = check_task
+
+def add_task_event(e):
+    if e.key == "Enter":
+        add_task()
+
+def limpiar(*ags, **kws):
+      global persona
+      elemento_a_limpiar=Element('list-tasks-container')
+      elemento_a_limpiar.clear()
+      persona=[]
+
+def calculo_final(*ags, **kws):
+        cantidad_gente=len(persona)
+        total_gastos=0
+        for element in range(len(persona)):
+              persona_actual=persona[element]
+              total_gastos+=float(persona_actual['valor_aportado'])
+        aporte_individual=float(total_gastos/cantidad_gente)
+        for element in range(len(persona)):
+              persona_actual=persona[element]
+              persona_actual['valor_aportado']-=aporte_individual
+        for element in range(len(persona)):
+              task_id = f"{len(persona)+1}"
+              persona_actual=persona[element]
+              if persona_actual['valor_aportado']>0:
+                    aporte_html = task_template2.clone(task_id, to=task_list)
+                    aporte_html_content = aporte_html.select("p")
+                    aporte_html_content.element.innerText =f'Hay que devolverle a {persona_actual["content"]} $ {persona_actual["valor_aportado"]}'
+                    task_list.element.appendChild(aporte_html.element)
+              elif persona_actual['valor_aportado']<0:
+                    aporte_html = task_template2.clone(task_id, to=task_list)
+                    aporte_html_content = aporte_html.select("p")
+                    aporte_html_content.element.innerText =f'{persona_actual["content"]} tiene que poner $ {-persona_actual["valor_aportado"]}'
+                    task_list.element.appendChild(aporte_html.element)
+              else:
+                    aporte_html = task_template2.clone(task_id, to=task_list)
+                    aporte_html_content = aporte_html.select("p")
+                    aporte_html_content.element.innerText =f'{persona_actual["content"]} no tiene que poner nada'
+                    task_list.element.appendChild(aporte_html.element)
+
+
+  </py-script>
+
+  <main class="max-w-xs mx-auto mt-4">
+    <section>
+
+    <div class="text-center w-full mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 uppercase tracking-tight">A ponerlaaaa</h1>
+      <br>
+      <br>
+      <h5 class="font-bold text-gray-800 uppercase tracking-tight">Si alguien todavía no pagó, incluirla pero con plata $ 0</h5>
+
+    </div>
+    <div>
+    <div>
+      <input id="new-task-content" class="border flex-1 mr-3 border-gray-300 p-2 rounded" type="text" placeholder="Nombre de la persona">
+      <input id="new-task-content2" class="border flex-1 mr-3 border-gray-300 p-2 rounded" style="margin-top:5px" type="text" placeholder="Cantidad de plata que puso">
+      <button id="new-task-btn" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="add_task">
+        Añadir a la ronda
+      </button>
+      <button id="new-task-btn2" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="calculo_final">
+        Calculame esta
+      </button>
+      <button id="new-task-btn3" class="p-2 text-white bg-blue-600 border border-blue-600 rounded" style="margin-top: 5px" type="submit" pys-onClick="limpiar">
+        BORRA TODO
+      </button>
+    </div>
+
+    <py-list id="myList"></py-list>
+    <div id="list-tasks-container" class="flex flex-col-reverse mt-4">
+  </div>
+
+    <template id="task-template">
+        <section class="task bg-white my-1">
+            <label for="flex items-center p-2 ">
+                <input class="mr-2" type="checkbox" class="task-check">
+                <p class="m-0 inline"></p>
+            </label>
+        </section>
+    </template>
+    <template id="task-template2">
+        <section class="task bg-white my-1">
+            <label for="flex items-center p-2 ">
+                <p class="m-0 inline"></p>
+            </label>
+        </section>
+    </template>
+  </section>
+  <section>
+
+  </section>
+  </main>
+</body>
+</html>
